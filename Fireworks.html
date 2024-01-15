@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Heart Game</title>
+
+        <script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js"></script>
+        
+        
+    </head>
+    <body>  
+        <script type="text/javascript">
+var fireworks = [];
+var explosions = [];
+var sparks = [];
+var splashes = [];
+var traces = [];
+
+function setup()
+{
+  createCanvas(600, 600);
+  frameRate(60);
+}
+
+function draw()
+{
+    background(0, 0, 100);
+    for(var i = 0; i < fireworks.length; i++)
+    {
+      fireworks[i].update();
+      fireworks[i].show();
+      if(fireworks[i].live < 0)
+      {
+        explosions.push(new Explosion(fireworks[i].x, fireworks[i].y-10));
+        fireworks.splice(i, 1);
+      }
+    }
+    for(var i = 0; i < explosions.length; i++)
+    {
+      explosions[i].update();
+      explosions[i].show();
+      if(explosions[i].live < 0)
+      {
+        explosions.splice(i, 1);
+      }
+    }
+    for(var i = 0; i < sparks.length; i++)
+    {
+      sparks[i].update();
+      sparks[i].show();
+      if(sparks[i].live < 0)
+      {
+        sparks.splice(i, 1);
+      }
+    }
+    for(var i = 0; i < splashes.length; i++)
+    {
+      splashes[i].update();
+      splashes[i].show();
+      if(splashes[i].live < 0)
+      {
+        splashes.splice(i, 1);
+      }
+    }
+    for(var i = 0; i < traces.length; i++)
+    {
+      traces[i].update();
+      traces[i].show();
+      if(traces[i].live < 0)
+      {
+        traces.splice(i, 1);
+      }
+    }
+}
+
+function mousePressed()
+{
+  console.log(traces.length);
+  fireworks.push(new Firework(mouseX, mouseY)); 
+}
+
+
+function Firework(xcord, ycord)
+{
+  this.x = xcord;
+  this.y = ycord;
+  this.ace = 0;
+  this.c = color(random(255), random(255), random(255));
+
+  this.live = 30 + random(20);
+
+
+  this.show = function()
+  {
+    fill(this.c);
+    beginShape();
+    vertex(this.x, this.y);
+    vertex(this.x+3, this.y);
+    vertex(this.x+3, this.y-16);
+    vertex(this.x+5, this.y-16);
+    vertex(this.x, this.y-20);
+    vertex(this.x-5, this.y-16);
+    vertex(this.x-3, this.y-16);
+    vertex(this.x-3, this.y);
+    vertex(this.x, this.y);
+    endShape();
+  }
+
+  this.update = function()
+  {
+    if(this.live > 0)
+    {
+      this.live--;
+      this.ace+=0.3;
+      this.y = this.y - this.ace;
+      sparks.push(new Spark(this.x, this.y));
+    }
+    this.y = constrain(this.y, 20, 600);
+
+  }
+
+}
+
+function Explosion(xcord, ycord)
+{
+  this.x = xcord;
+  this.y = ycord;
+
+  this.live = 100;
+  this.c = color(255, 200, 200);
+
+  this.particles = random(100, 150);
+
+  this.show = function()
+  {
+    if(this.live > 70)
+    {
+      fill(this.c);
+      circle(this.x, this.y, 6 + (this.live-70)/2);
+    }
+    if(this.live === 85)
+    {
+      col = Math.floor(Math.random() * 8);
+      colorR = [255, 181, 150, 76, 255, 255, 152, 200];
+      colorG = [153, 208, 255, 255, 249, 139, 35, 255];
+      colorB = [234, 255, 180, 243, 102, 45, 255, 91];
+      for(i = 0; i < this.particles; i++)
+      {
+        splashes.push(new Splash(this.x, this.y, color(colorR[col], colorG[col], colorB[col]), 150))
+      }
+    }
+  }
+
+  this.update = function()
+  {
+    this.live--;
+  }
+
+}
+
+function Splash(xcord, ycord, col, rad)
+{
+  this.x = xcord;
+  this.y = ycord;
+
+  this.c = col;
+  this.rad = rad + random(rad/-15, rad/15);
+
+  this.live = random(75, 100);
+  this.max_live = this.live;
+  this.angle = random(0, 359) * Math.PI / 180;
+
+  this.show = function()
+  {
+    fill(this.c);
+    rect(this.x, this.y, 2, 2);
+  }
+
+  this.update = function()
+  {
+    this.live--;
+    this.x = this.x + this.rad * Math.cos(this.angle) / this.max_live;
+    this.y = this.y + this.rad * Math.sin(this.angle) / this.max_live;
+    if(random(0, 10) < 1)
+    {
+      traces.push(new Trace(this.x, this.y, this.c, this.live + random(this.live/-3, this.live/3)))
+    }
+  }
+
+}
+
+function Trace(xcord, ycord, col, live)
+{
+  this.x = xcord;
+  this.y = ycord;
+
+  this.c = col;
+  this.live = live;
+
+
+  this.show = function()
+  {
+    fill(this.c);
+    rect(this.x, this.y, 2, 2);
+  }
+
+  this.update = function()
+  {
+    this.live--;
+  }
+
+}
+
+function Spark(xcord, ycord)
+{
+  this.x = xcord;
+  this.y = ycord;
+  this.vector = [random(-4, 4), random(10, 12)];
+  this.live = 30;
+  this.c = color(255, 255, 255);
+
+  this.show = function()
+  {
+    noStroke();
+    fill(this.c);
+    rect(this.x, this.y, 2, 2);
+
+  }
+
+  this.update = function()
+  {
+    this.live--;
+    this.x = this.x + this.vector[0]/30;
+    this.y = this.y - this.vector[1]/30;
+  }
+}
+        </script>
+    </body>
+</html>
